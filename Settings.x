@@ -1,4 +1,31 @@
 #import "YTLite.h"
+#import <AVKit/AVKit.h>
+
+%hook YTTransportControlsOverlayView
+- (void)layoutSubviews {
+    %orig;
+
+    UIButton *castBtn = nil;
+    for (UIView *v in self.subviews) {
+        if ([v isKindOfClass:[UIButton class]]) {
+            NSString *ax = ((UIButton *)v).accessibilityLabel;
+            if ([ax containsString:@"Cast"] || [ax containsString:@"AirPlay"]) {
+                castBtn = (UIButton *)v;
+                break;
+            }
+        }
+    }
+    if (!castBtn) return;
+
+    AVRoutePickerView *picker = [[AVRoutePickerView alloc] initWithFrame:castBtn.frame];
+    picker.backgroundColor = UIColor.clearColor;
+    picker.tintColor = castBtn.tintColor;
+    picker.activeTintColor = castBtn.tintColor;
+    [self addSubview:picker];
+
+    castBtn.hidden = YES;
+}
+%end
 
 @interface YTSettingsSectionItemManager (YTLite)
 - (void)updateYTLiteSectionWithEntry:(id)entry;
